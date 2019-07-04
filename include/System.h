@@ -122,6 +122,9 @@ public:
     std::vector<MapPoint*> GetTrackedMapPoints();
     std::vector<cv::KeyPoint> GetTrackedKeyPointsUn();
 
+    void set_path(std::string path) { mpMap->set_path(path); }
+    void save_matching_pair(void) { mpMap->save_matching_pairs(); }
+
 private:
 
     // Input sensor

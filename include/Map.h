@@ -40,7 +40,7 @@ class Map
 public:
     Map();
 
-    void AddKeyFrame(KeyFrame* pKF);
+    void AddKeyFrame(KeyFrame* pKF, cv::Mat &img);
     void AddMapPoint(MapPoint* pMP);
     void EraseMapPoint(MapPoint* pMP);
     void EraseKeyFrame(KeyFrame* pKF);
@@ -66,6 +66,9 @@ public:
     // This avoid that two points are created simultaneously in separate threads (id conflict)
     std::mutex mMutexPointCreation;
 
+  void set_path(std::string path);
+  void save_matching_pairs(void);
+
 protected:
     std::set<MapPoint*> mspMapPoints;
     std::set<KeyFrame*> mspKeyFrames;
@@ -78,6 +81,10 @@ protected:
     int mnBigChangeIdx;
 
     std::mutex mMutexMap;
+
+  // Save the original image for sfm reconstruction
+  std::string imgpath;
+
 };
 
 } //namespace ORB_SLAM

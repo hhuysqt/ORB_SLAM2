@@ -164,7 +164,7 @@ void LocalMapping::ProcessNewKeyFrame()
     mpCurrentKeyFrame->UpdateConnections();
 
     // Insert Keyframe in Map
-    mpMap->AddKeyFrame(mpCurrentKeyFrame);
+    mpMap->AddKeyFrame(mpCurrentKeyFrame, mpTracker->mOriImg);
 }
 
 void LocalMapping::MapPointCulling()

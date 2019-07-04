@@ -22,6 +22,9 @@
 
 #include<mutex>
 
+#include <unistd.h>
+#include <sys/stat.h>
+
 namespace ORB_SLAM2
 {
 
@@ -29,12 +32,36 @@ Map::Map():mnMaxKFid(0),mnBigChangeIdx(0)
 {
 }
 
-void Map::AddKeyFrame(KeyFrame *pKF)
+void Map::set_path(std::string path)
+{
+    std::ostringstream dirname;
+
+    /* mkdir /<path>/imgX */
+    for (int cnt = 0; ; cnt++) {
+        dirname << path << "/img" << cnt;
+        struct stat stat1;
+        if (stat(dirname.str().c_str(), &stat1) != 0) {
+            break;
+        }
+        dirname.str("");
+    }
+    mkdir (dirname.str().c_str(), 0777);
+    imgpath = dirname.str();
+}
+
+void Map::AddKeyFrame(KeyFrame *pKF, cv::Mat &img)
 {
     unique_lock<mutex> lock(mMutexMap);
     mspKeyFrames.insert(pKF);
     if(pKF->mnId>mnMaxKFid)
         mnMaxKFid=pKF->mnId;
+
+    // save the keyframe image
+    if (imgpath.length() != 0) {
+        std::ostringstream tmp;
+        tmp << imgpath << "/img" << pKF->mnId << ".jpg";
+        cv::imwrite(tmp.str().c_str(), img);
+    }
 }
 
 void Map::AddMapPoint(MapPoint *pMP)
@@ -59,6 +86,48 @@ void Map::EraseKeyFrame(KeyFrame *pKF)
 
     // TODO: This only erase the pointer.
     // Delete the MapPoint
+
+    // remove the corresponding image
+    if (imgpath.length() != 0) {
+        std::ostringstream tmp;
+        tmp << imgpath << "/img" << pKF->mnId << ".jpg";
+        cout << tmp.str() << endl;
+        remove(tmp.str().c_str());
+    }
+}
+
+void Map::save_matching_pairs(void)
+{
+    std::ostringstream tmp;
+    tmp << imgpath << "/matching.txt";
+    std::cout << "Saving matching pairs for COLMAP: " << tmp.str() << std::endl;
+
+    ofstream f;
+    f.open(tmp.str());
+
+    set<KeyFrame*> already_matched;
+
+    for (set<KeyFrame*>::iterator sit = mspKeyFrames.begin(), 
+         send = mspKeyFrames.end(); 
+         sit != send; sit++) {
+        std::ostringstream tmp;
+        tmp << "img" << (*sit)->mnId << ".jpg";
+        already_matched.insert(*sit);
+        set <KeyFrame*> cnned_kf = (*sit)->GetConnectedKeyFrames();
+        for (set<KeyFrame*>::iterator c_sit = cnned_kf.begin(),
+             c_send = cnned_kf.end();
+             c_sit != c_send; c_sit++) {
+            if (already_matched.count(*c_sit))
+                continue;
+
+            // write it to the matching file
+            std::ostringstream tmp2;
+            tmp2 << "img" << (*c_sit)->mnId << ".jpg";
+            f << tmp.str() << " " << tmp2.str() << endl;
+        }
+    }
+
+    f.close();
 }
 
 void Map::SetReferenceMapPoints(const vector<MapPoint *> &vpMPs)

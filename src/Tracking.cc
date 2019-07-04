@@ -238,6 +238,8 @@ cv::Mat Tracking::GrabImageRGBD(const cv::Mat &imRGB,const cv::Mat &imD, const d
 cv::Mat Tracking::GrabImageMonocular(const cv::Mat &im, const double &timestamp)
 {
     mImGray = im;
+    mOriImg.release();
+    mOriImg = im.clone();
 
     if(mImGray.channels()==3)
     {
@@ -517,7 +519,7 @@ void Tracking::StereoInitialization()
         KeyFrame* pKFini = new KeyFrame(mCurrentFrame,mpMap,mpKeyFrameDB);
 
         // Insert KeyFrame in the map
-        mpMap->AddKeyFrame(pKFini);
+        mpMap->AddKeyFrame(pKFini, mOriImg);
 
         // Create MapPoints and asscoiate to KeyFrame
         for(int i=0; i<mCurrentFrame.N;i++)
@@ -645,8 +647,8 @@ void Tracking::CreateInitialMapMonocular()
     pKFcur->ComputeBoW();
 
     // Insert KFs in the map
-    mpMap->AddKeyFrame(pKFini);
-    mpMap->AddKeyFrame(pKFcur);
+    mpMap->AddKeyFrame(pKFini, mOriImg);
+    mpMap->AddKeyFrame(pKFcur, mOriImg);
 
     // Create MapPoints and asscoiate to keyframes
     for(size_t i=0; i<mvIniMatches.size();i++)
