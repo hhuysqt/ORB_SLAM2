@@ -64,6 +64,7 @@ src/ros_mono.cc
 
 target_link_libraries(Mono
 ${LIBS}
+boost_system
 )
 
 # Node for monocular camera (Augmented Reality Demo)
@@ -75,6 +76,7 @@ src/AR/ViewerAR.cc
 
 target_link_libraries(MonoAR
 ${LIBS}
+boost_system
 )
 
 # Node for stereo camera
@@ -84,6 +86,7 @@ src/ros_stereo.cc
 
 target_link_libraries(Stereo
 ${LIBS}
+boost_system
 )
 
 # Node for RGB-D camera
@@ -93,5 +96,6 @@ src/ros_rgbd.cc
 
 target_link_libraries(RGBD
 ${LIBS}
+boost_system
 )
 
